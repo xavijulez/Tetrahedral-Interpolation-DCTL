@@ -1,0 +1,121 @@
+//MIT License
+
+//Copyright (c) 2020 calvinsilly
+
+//Permission is hereby granted, free of charge, to any person obtaining a copy
+//of this software and associated documentation files (the "Software"), to deal
+//in the Software without restriction, including without limitation the rights
+//to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+//copies of the Software, and to permit persons to whom the Software is
+//furnished to do so, subject to the following conditions:
+
+//The above copyright notice and this permission notice shall be included in all
+//copies or substantial portions of the Software.
+
+//THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+//IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+//AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+//LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+//OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+//SOFTWARE.
+
+//TETRAHEDRAL INTERPOLATION (inspired by Steve Yedlin's Display Prep Demo followup)
+//first written by calvinsilly for Nuke, then ported to Fusion by EmberLightVFX and now to DCTL by xavijulez
+
+
+
+//Red
+DEFINE_UI_PARAMS(rr, R-R, DCTLUI_SLIDER_FLOAT, 1, 0, 1, 0.001)
+DEFINE_UI_PARAMS(rg, R-G, DCTLUI_SLIDER_FLOAT, 0, 0, 1, 0.001)
+DEFINE_UI_PARAMS(rb, R-B, DCTLUI_SLIDER_FLOAT, 0, 0, 1, 0.001)
+
+//ui divider deactivated by default
+//DEFINE_UI_PARAMS(z, ----------, DCTLUI_SLIDER_FLOAT, 0, 0, 0, 0)
+
+//Green
+DEFINE_UI_PARAMS(gr, G-R, DCTLUI_SLIDER_FLOAT, 0, 0, 1, 0.001)
+DEFINE_UI_PARAMS(gg, G-G, DCTLUI_SLIDER_FLOAT, 1, 0, 1, 0.001)
+DEFINE_UI_PARAMS(gb, G-B, DCTLUI_SLIDER_FLOAT, 0, 0, 1, 0.001)
+
+//ui divider deactivated by default
+//DEFINE_UI_PARAMS(z, ----------, DCTLUI_SLIDER_FLOAT, 0, 0, 0, 0)
+
+//Blue
+DEFINE_UI_PARAMS(br, B-R, DCTLUI_SLIDER_FLOAT, 0, 0, 1, 0.001)
+DEFINE_UI_PARAMS(bg, B-G, DCTLUI_SLIDER_FLOAT, 0, 0, 1, 0.001)
+DEFINE_UI_PARAMS(bb, B-B, DCTLUI_SLIDER_FLOAT, 1, 0, 1, 0.001)
+
+//ui divider deactivated by default
+//DEFINE_UI_PARAMS(z, ----------, DCTLUI_SLIDER_FLOAT, 0, 0, 0, 0)
+
+//Cyan
+DEFINE_UI_PARAMS(cr, C-R, DCTLUI_SLIDER_FLOAT, 0, 0, 1, 0.001)
+DEFINE_UI_PARAMS(cg, C-G, DCTLUI_SLIDER_FLOAT, 1, 0, 1, 0.001)
+DEFINE_UI_PARAMS(cb, C-B, DCTLUI_SLIDER_FLOAT, 1, 0, 1, 0.001)
+
+//ui divider deactivated by default
+//DEFINE_UI_PARAMS(z, ----------, DCTLUI_SLIDER_FLOAT, 0, 0, 0, 0)
+
+//Magenta
+DEFINE_UI_PARAMS(mr, M-R, DCTLUI_SLIDER_FLOAT, 1, 0, 1, 0.001)
+DEFINE_UI_PARAMS(mg, M-G, DCTLUI_SLIDER_FLOAT, 0, 0, 1, 0.001)
+DEFINE_UI_PARAMS(mb, M-B, DCTLUI_SLIDER_FLOAT, 1, 0, 1, 0.001)
+
+//ui divider deactivated by default
+//DEFINE_UI_PARAMS(z, ----------, DCTLUI_SLIDER_FLOAT, 0, 0, 0, 0)
+
+//Yellow
+DEFINE_UI_PARAMS(yr, Y-R, DCTLUI_SLIDER_FLOAT, 1, 0, 1, 0.001)
+DEFINE_UI_PARAMS(yg, Y-G, DCTLUI_SLIDER_FLOAT, 1, 0, 1, 0.001)
+DEFINE_UI_PARAMS(yb, Y-B, DCTLUI_SLIDER_FLOAT, 0, 0, 1, 0.001)
+
+
+__DEVICE__ float3 transform(int p_Width, int p_Height, int p_X, int p_Y, float p_R, float p_G, float p_B)
+{
+        float3 rgb = make_float3(p_R, p_G, p_B);
+
+	float r = p_R;
+        float g = p_G;
+        float b = p_B;
+
+
+        float3 wht = make_float3(1.0f, 1.0f, 1.0f);
+        float3 red = make_float3(rr, rg, rb);
+        float3 grn = make_float3(gr, gg, gb);
+        float3 blu = make_float3(br, bg, bb);
+        float3 cyn = make_float3(cr, cg, cb);
+        float3 mag = make_float3(mr, mg, mb);
+        float3 yel = make_float3(yr, yg, yb);
+
+
+if (p_R>p_G) {
+            //r>g>b
+            if (g>b){
+                rgb = r*red + g*(yel-red) + b*(wht-yel);
+            }
+            //r>b>g
+            else if (p_R>p_B){
+                rgb = r*red + g*(wht-mag) + b*(mag-red);
+            }
+            //b>r>g
+            else{
+                rgb = r*(mag-blu) + g*(wht-mag) + b*blu;
+            }
+        } else {
+            //b>g>r
+            if (b>g){
+                rgb = r*(wht-cyn) + g*(cyn-blu) + b*blu;
+            }
+            //g>b>r
+            else if (b>r){
+                rgb = r*(wht-cyn) + g*grn + b*(cyn-grn);
+            }
+            //g>r>b
+            else{
+                rgb = r*(yel-grn) + g*grn + b*(wht-yel);
+            }
+        }
+
+return rgb;
+}
